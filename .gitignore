@@ -7,3 +7,4 @@ node_modules/
 *.tgz
 template-config.json
 hermes-template-config.json
+.gsc-*.txt
