@@ -4,3 +4,6 @@ node_modules/
 .env.*
 !.env.example
 *.log
+*.tgz
+template-config.json
+hermes-template-config.json

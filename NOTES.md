@@ -1,30 +1,28 @@
 # OpenSEO Railway template notes
 
-## Verified reference project
+## Template
 
-| Item | Value |
-|------|--------|
-| Workspace | Social Freak Network |
-| Project | OpenSEO (`675856b6-cb4e-4e67-8f7e-992bf4f8d6e9`) |
-| Service | OpenSEO · image `ghcr.io/every-app/open-seo:v0.1.1` |
-| Volume | `openseo-volume` → `/app/.wrangler` |
-| Public URL | https://openseo-production-098f.up.railway.app (target port **8080** = Railway `PORT`) |
-| Template | [openseo](https://railway.com/deploy/openseo) (`6a1ba9ba-fcb0-4085-90dd-bdf142c180e5`) |
+- Marketplace: https://railway.com/deploy/openseo
+- Image: `ghcr.io/every-app/open-seo` (semver tags)
+- Volume: `/app/.wrangler` (required for persistence)
 
-## Dry-run results
+## Verified locally
 
-- First boot: volume mounted, D1 migrate + Vite build, HTTP 200 on `/`.
-- Redeploy: logs showed `No migrations to apply!` (D1 state survived on the volume), then HTTP 200 again.
-- Image Auto Updates: enable in service Settings → Source after deploy (minor+patch). Not reliably settable via current CLI/GraphQL for this image service; documented in marketplace overview.
+- Volume mount + D1 survive redeploy (`No migrations to apply!` after restart)
+- HTTP 200 after cold start (multi-minute build; ~4GB+ RAM recommended)
+- Domain target port must match Railway `PORT` (often `8080`)
+- Image Auto Updates: enable in service Settings → Source (minor + patch) after deploy
 
 ## IaC note
 
-`.railway/railway.ts` documents the intended shape. On Windows, `railway config plan/apply` currently fails loading `railway/iac` (module URL query bug). Provisioning was done with `railway add` / `railway volume add` / `railway variable` / `railway domain` instead.
+[`.railway/railway.ts`](.railway/railway.ts) documents the intended shape. On Windows, `railway config plan/apply` may fail loading `railway/iac`; provision with `railway add` / `volume` / `variable` / `domain` instead.
 
-## Post-deploy checklist for consumers
+## Post-deploy checklist
 
-1. Replace `DATAFORSEO_API_KEY` placeholder with real Base64 `email:password`.
-2. Confirm domain target port matches container `PORT` (often 8080).
-3. Enable Image Auto Updates (minor + patch).
-4. Remember `local_noauth` — do not expose publicly without your own gate.
-5. Size memory for multi-minute cold starts (~4GB+).
+1. Set `DATAFORSEO_API_KEY` (Base64 of `email:password`)
+2. Confirm domain port matches `PORT`
+3. Enable Image Auto Updates (minor + patch)
+4. Remember `local_noauth` — gate the public URL yourself
+5. Size memory for multi-minute cold starts (~4GB+)
+
+Variable defaults: see [`TEMPLATE_VARIABLES.md`](TEMPLATE_VARIABLES.md).

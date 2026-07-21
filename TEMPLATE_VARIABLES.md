@@ -1,7 +1,6 @@
 # Template variables (set in Railway template Variables UI)
 
-Open the template editor → **Variables** tab:
-https://railway.com/workspace/templates/6a1ba9ba-fcb0-4085-90dd-bdf142c180e5
+Open the template in Railway → **Variables** tab.
 
 For each row: open the **⋮** menu → edit. Set **Default value**, **Description**, and **Optional** as below.
 

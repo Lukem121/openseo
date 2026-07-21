@@ -23,4 +23,4 @@ https://railway.com/deploy/openseo
 | Volume | `/app/.wrangler` |
 | Auth | `local_noauth` |
 
-Details: [`TEMPLATE_OVERVIEW.md`](TEMPLATE_OVERVIEW.md) · notes: [`NOTES.md`](NOTES.md)
+Details: [`TEMPLATE_OVERVIEW.md`](TEMPLATE_OVERVIEW.md) · [`TEMPLATE_VARIABLES.md`](TEMPLATE_VARIABLES.md) · [`NOTES.md`](NOTES.md)
