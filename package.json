@@ -1,0 +1,14 @@
+{
+  "name": "openseo-railway-template",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Community Railway template for OpenSEO (GHCR image + persistent volume)",
+  "scripts": {
+    "railway:plan": "railway config plan",
+    "railway:apply": "railway config apply --yes",
+    "railway:status": "railway status"
+  },
+  "devDependencies": {
+    "railway": "^3.5.10"
+  }
+}

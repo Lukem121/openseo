@@ -1,0 +1,55 @@
+{
+  "data": {
+    "template": {
+      "id": "6a1ba9ba-fcb0-4085-90dd-bdf142c180e5",
+      "code": "openseo",
+      "name": "OpenSEO",
+      "serializedConfig": {
+        "buckets": {},
+        "services": {
+          "d8715a8b-8be7-45a4-bf3e-ac370c2af7e4": {
+            "icon": null,
+            "name": "OpenSEO",
+            "deploy": {
+              "startCommand": null,
+              "healthcheckPath": null,
+              "restartPolicyType": "ON_FAILURE",
+              "restartPolicyMaxRetries": 10
+            },
+            "source": {
+              "image": "ghcr.io/every-app/open-seo:v0.1.1"
+            },
+            "variables": {
+              "AUTH_MODE": {
+                "isOptional": false
+              },
+              "ALLOWED_HOST": {
+                "isOptional": false,
+                "defaultValue": "${{RAILWAY_PUBLIC_DOMAIN}}"
+              },
+              "DATAFORSEO_API_KEY": {
+                "isOptional": false
+              },
+              "VITE_SHOW_DEVTOOLS": {
+                "isOptional": false
+              },
+              "CLOUDFLARE_INCLUDE_PROCESS_ENV": {
+                "isOptional": false
+              }
+            },
+            "networking": {
+              "serviceDomains": {
+                "<hasDomain>": {}
+              }
+            },
+            "volumeMounts": {
+              "d8715a8b-8be7-45a4-bf3e-ac370c2af7e4": {
+                "mountPath": "/app/.wrangler"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
