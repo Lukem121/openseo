@@ -4,7 +4,7 @@ Community template for [OpenSEO](https://github.com/every-app/open-seo). Deploys
 
 ## Deploy
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/openseo?utm_medium=integration&utm_source=button&utm_campaign=openseo)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/openseo)
 
 https://railway.com/deploy/openseo
 
