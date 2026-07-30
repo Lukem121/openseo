@@ -13,6 +13,10 @@ Tiny reverse proxy in front of OpenSEO. One env password, cookie session, no use
 ## Routes
 
 - `GET /__gate/health` — healthcheck (no auth)
+- `GET /__gate/upstream` — probes OpenSEO; `{ ok: true/false }`
+- `GET /__gate/starting` — waiting page while OpenSEO boots (auto-retries)
 - `POST /__gate/login` — password form submit
 - `GET /__gate/logout` — clear session
 - everything else — password gate, then proxy
+
+If OpenSEO is still cold-starting, Gate shows a waiting page instead of raw “Bad gateway”.
