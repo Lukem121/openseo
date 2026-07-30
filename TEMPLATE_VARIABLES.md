@@ -1,36 +1,63 @@
 # Template variables (set in Railway template Variables UI)
 
-Open the template in Railway → **Variables** tab.
+Open the template in Railway → **Variables** tab. Variables are per service (**OpenSEO** vs **Gate**).
 
 For each row: open the **⋮** menu → edit. Set **Default value**, **Description**, and **Optional** as below.
 
-Literal defaults (like `local_noauth`) do **not** carry over when generating a template from a project — only reference values like `${{RAILWAY_PUBLIC_DOMAIN}}` do. So these must be set on the template itself.
+Literal defaults (like `local_noauth`) do **not** carry over when generating a template from a project — only reference values like `${{Gate.RAILWAY_PUBLIC_DOMAIN}}` do. So these must be set on the template itself.
 
 ---
 
-## Required (user must provide)
+## Gate (public entry)
+
+### `SITE_PASSWORD`
+| Field | Value |
+|-------|--------|
+| Service | **Gate** |
+| Required | **Yes** (Optional = off) |
+| Default | *(leave empty)* |
+| Description | `Shared unlock password. Visitors enter this on the Gate page before using OpenSEO.` |
+
+### `UPSTREAM_URL`
+| Field | Value |
+|-------|--------|
+| Service | **Gate** |
+| Required | No (Optional = **on**) |
+| Default | `http://${{OpenSEO.RAILWAY_PRIVATE_DOMAIN}}:8080` |
+| Description | `Private OpenSEO URL. Keep port in sync with OpenSEO PORT.` |
+
+---
+
+## OpenSEO (private app)
 
 ### `DATAFORSEO_API_KEY`
 | Field | Value |
 |-------|--------|
+| Service | **OpenSEO** |
 | Required | **Yes** (Optional = off) |
 | Default | *(leave empty)* |
 | Description | `Base64 of your DataForSEO email:password. See https://github.com/every-app/open-seo/blob/main/docs/DATAFORSEO_API_KEY.md` |
 
----
-
-## Pre-filled (set default; mark Optional so deploy isn’t blocked)
+### `PORT`
+| Field | Value |
+|-------|--------|
+| Service | **OpenSEO** |
+| Required | No (Optional = **on**) |
+| Default | `8080` |
+| Description | `Private listen port. Keep 8080 unless you change Gate UPSTREAM_URL.` |
 
 ### `AUTH_MODE`
 | Field | Value |
 |-------|--------|
+| Service | **OpenSEO** |
 | Required | No (Optional = **on**) |
 | Default | `local_noauth` |
-| Description | `Keep local_noauth for Docker self-host. WARNING: the public URL has no app login — gate it yourself.` |
+| Description | `Keep local_noauth. Gate provides the public password gate.` |
 
 ### `CLOUDFLARE_INCLUDE_PROCESS_ENV`
 | Field | Value |
 |-------|--------|
+| Service | **OpenSEO** |
 | Required | No (Optional = **on**) |
 | Default | `true` |
 | Description | `Leave true so process env is exposed as Worker bindings in Docker/Miniflare mode.` |
@@ -38,6 +65,7 @@ Literal defaults (like `local_noauth`) do **not** carry over when generating a t
 ### `VITE_SHOW_DEVTOOLS`
 | Field | Value |
 |-------|--------|
+| Service | **OpenSEO** |
 | Required | No (Optional = **on**) |
 | Default | `false` |
 | Description | `Keep false in production.` |
@@ -45,13 +73,14 @@ Literal defaults (like `local_noauth`) do **not** carry over when generating a t
 ### `ALLOWED_HOST`
 | Field | Value |
 |-------|--------|
+| Service | **OpenSEO** |
 | Required | No (Optional = **on**) |
-| Default | `${{RAILWAY_PUBLIC_DOMAIN}}` |
-| Description | `Vite allowed hostname. Defaults to your Railway public domain; update if you add a custom domain.` |
+| Default | `${{Gate.RAILWAY_PUBLIC_DOMAIN}}` |
+| Description | `Vite allowed hostname. Defaults to Gate’s public domain; update if you add a custom domain on Gate.` |
 
 ---
 
-## Optional extras (add if you want)
+## Optional extras (OpenSEO)
 
 ### `OPENSEO_TELEMETRY_DISABLED`
 | Field | Value |
@@ -65,10 +94,15 @@ Literal defaults (like `local_noauth`) do **not** carry over when generating a t
 |-------|--------|
 | Required | No |
 | Default | *(empty)* |
-| Description | `Optional — Google Search Console OAuth. See OpenSEO GSC self-host docs.` |
+| Description | `Optional — Google Search Console OAuth. Use the Gate public URL as the OAuth redirect origin.` |
 
 ---
 
 ## Deploy form goal
 
-After this, users should mainly be prompted for **`DATAFORSEO_API_KEY`**. Everything else is pre-filled or skipped.
+Users should mainly be prompted for **`DATAFORSEO_API_KEY`** and **`SITE_PASSWORD`**. Everything else is pre-filled or skipped.
+
+## Networking
+
+- Public domain / custom domain → **Gate** only
+- OpenSEO → private networking only (no public domain)

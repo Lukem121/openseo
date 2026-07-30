@@ -1,5 +1,6 @@
 import {
   defineRailway,
+  github,
   image,
   project,
   service,
@@ -8,11 +9,13 @@ import {
 
 /**
  * Third-party OpenSEO Railway template (not affiliated with every-app).
- * Persists Miniflare/D1/KV/R2 state on a volume at /app/.wrangler
- * (same path as official Docker Compose).
+ *
+ * Public traffic hits Gate (password form) → private OpenSEO over
+ * Railway internal networking. OpenSEO stays AUTH_MODE=local_noauth;
+ * do not attach a public domain to OpenSEO.
  *
  * Image tracks OpenSEO GHCR release tags. Enable Image Auto Updates
- * (minor+patch) after deploy if not already on via autoUpdates.
+ * (minor+patch) on OpenSEO after deploy if needed.
  */
 export default defineRailway(() => {
   const data = volume("open-seo-data", {
@@ -30,10 +33,16 @@ export default defineRailway(() => {
       "/app/.wrangler": data,
     },
     env: {
+      // Fixed so Gate can reach OpenSEO on a known private port.
+      PORT: {
+        value: "8080",
+        description:
+          "Listen port for private networking. Keep 8080 unless you also change Gate UPSTREAM_URL.",
+      },
       AUTH_MODE: {
         value: "local_noauth",
         description:
-          "Docker self-host auth mode. Keep local_noauth. WARNING: the public Railway URL has no app auth — treat as private or put your own gate in front.",
+          "Docker self-host auth mode. Keep local_noauth — Gate provides the public password gate.",
       },
       CLOUDFLARE_INCLUDE_PROCESS_ENV: {
         value: "true",
@@ -41,9 +50,9 @@ export default defineRailway(() => {
           "Required so process env is exposed as Worker bindings in Docker/Miniflare mode.",
       },
       ALLOWED_HOST: {
-        value: "${{RAILWAY_PUBLIC_DOMAIN}}",
+        value: "${{Gate.RAILWAY_PUBLIC_DOMAIN}}",
         description:
-          "Vite allowed host. Defaults to the Railway public domain. Update and redeploy if you add a custom domain.",
+          "Vite allowed host. Defaults to the Gate public domain. Update if you add a custom domain on Gate.",
       },
       DATAFORSEO_API_KEY: {
         value: "",
@@ -86,7 +95,26 @@ export default defineRailway(() => {
     },
   });
 
+  const gate = service("Gate", {
+    source: github("Lukem121/openseo", { rootDirectory: "auth-gateway" }),
+    healthcheck: "/__gate/health",
+    healthcheckTimeout: 120,
+    env: {
+      SITE_PASSWORD: {
+        value: "",
+        description:
+          "Required. Shared password shown on the unlock page before anyone can use OpenSEO.",
+        isOptional: false,
+      },
+      UPSTREAM_URL: {
+        value: "http://${{OpenSEO.RAILWAY_PRIVATE_DOMAIN}}:8080",
+        description:
+          "Private OpenSEO URL. Keep in sync with OpenSEO PORT (default 8080).",
+      },
+    },
+  });
+
   return project("OpenSEO", {
-    resources: [openSeo, data],
+    resources: [openSeo, gate, data],
   });
 });
