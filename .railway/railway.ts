@@ -24,7 +24,7 @@ export default defineRailway(() => {
 
   const openSeo = service("OpenSEO", {
     source: image("ghcr.io/every-app/open-seo:v0.1.1", {
-      autoUpdates: true,
+      autoUpdates: { type: "minor", tagMode: "semver" },
     }),
     // Long grace: image runs migrate + full Vite build on every start.
     healthcheck: "/",
