@@ -100,9 +100,21 @@ Literal defaults (like `local_noauth`) do **not** carry over when generating a t
 
 ## Deploy form goal
 
-Users should mainly be prompted for **`DATAFORSEO_API_KEY`** and **`SITE_PASSWORD`**. Everything else is pre-filled or skipped.
+Users should mainly be prompted for:
 
-## Networking
+1. **`DATAFORSEO_API_KEY`** (OpenSEO)
+2. **`SITE_PASSWORD`** (Gate)
 
-- Public domain / custom domain → **Gate** only
-- OpenSEO → private networking only (no public domain)
+Everything else is pre-filled or optional.
+
+## Networking (do not skip)
+
+```text
+Public internet → Gate only
+OpenSEO → private networking only
+```
+
+- Public / custom domain → **Gate**
+- OpenSEO → **no** public domain
+- Gate `UPSTREAM_URL` → `http://${{OpenSEO.RAILWAY_PRIVATE_DOMAIN}}:8080`
+- OpenSEO `ALLOWED_HOST` → `${{Gate.RAILWAY_PUBLIC_DOMAIN}}` (or your custom Gate host)

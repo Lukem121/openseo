@@ -3,40 +3,49 @@
 ## Template
 
 - Marketplace: https://railway.com/deploy/openseo
+- Repo: https://github.com/Lukem121/openseo
 - App image: `ghcr.io/every-app/open-seo` (semver tags)
-- Volume: `/app/.wrangler` on OpenSEO (required for persistence)
-- Gate: `auth-gateway/` (password unlock → private OpenSEO)
+- Volume: `/app/.wrangler` on OpenSEO
+- Gate: `auth-gateway/` (required public entry)
 
-## Verified locally
+## Mental model
 
-- Volume mount + D1 survive redeploy (`No migrations to apply!` after restart)
-- HTTP 200 after cold start (multi-minute build; ~4GB+ RAM recommended)
-- Domain target port must match Railway `PORT` (often `8080`)
-- Image Auto Updates: enable in OpenSEO Settings → Source (minor + patch) after deploy
+1. Visitors open **Gate**’s public URL
+2. They enter `SITE_PASSWORD` once (cookie lasts ~30 days)
+3. Gate proxies to **OpenSEO** over private networking
+4. OpenSEO never needs a public domain
 
-## Auth gate
+## Required setup
 
-OpenSEO Docker is `local_noauth`. Public access goes through **Gate**:
+| Where | What |
+|-------|------|
+| Gate | `SITE_PASSWORD`, public domain |
+| Gate | `UPSTREAM_URL=http://${{OpenSEO.RAILWAY_PRIVATE_DOMAIN}}:8080` |
+| OpenSEO | `DATAFORSEO_API_KEY`, `PORT=8080` |
+| OpenSEO | `ALLOWED_HOST=${{Gate.RAILWAY_PUBLIC_DOMAIN}}` |
+| OpenSEO | **No** public domain |
 
-1. Set `SITE_PASSWORD` on Gate
-2. Generate a public domain on **Gate** only
-3. Remove any public domain from **OpenSEO**
-4. OpenSEO `ALLOWED_HOST` = Gate public hostname
-5. Gate `UPSTREAM_URL` = `http://${{OpenSEO.RAILWAY_PRIVATE_DOMAIN}}:8080`
+Logout: `/__gate/logout`  
+Starting page while app boots: automatic on Gate
 
-Logout: `/__gate/logout`
+## Verified
 
-## IaC note
+- Volume + D1 survive redeploy
+- Gate password unlock + proxy works
+- Cold-start waiting page until OpenSEO is ready
+- Domain target port must match each service’s `PORT`
+- Image Auto Updates: enable on OpenSEO Settings → Source (minor + patch)
 
-[`.railway/railway.ts`](.railway/railway.ts) documents the intended shape. On Windows, `railway config plan/apply` may fail loading `railway/iac`; provision with `railway add` / `volume` / `variable` / `domain` instead.
+## IaC
 
-## Post-deploy checklist
+[`.railway/railway.ts`](.railway/railway.ts) is the intended shape (OpenSEO image + Gate from this repo’s `auth-gateway/`). On Windows, `railway config plan/apply` may fail loading `railway/iac`; use the dashboard / CLI to mirror the same services and vars.
 
-1. Set `DATAFORSEO_API_KEY` on OpenSEO (Base64 of `email:password`)
-2. Set `SITE_PASSWORD` on Gate
-3. Confirm only Gate has a public domain
-4. Confirm Gate domain port matches Gate `PORT`
-5. Enable Image Auto Updates on OpenSEO (minor + patch)
-6. Size OpenSEO memory for multi-minute cold starts (~4GB+)
+## Checklist
 
-Variable defaults: see [`TEMPLATE_VARIABLES.md`](TEMPLATE_VARIABLES.md).
+1. `DATAFORSEO_API_KEY` on OpenSEO
+2. `SITE_PASSWORD` on Gate
+3. Public domain on Gate only
+4. Image Auto Updates on OpenSEO
+5. ~4GB+ RAM on OpenSEO for cold starts
+
+Variables: [`TEMPLATE_VARIABLES.md`](TEMPLATE_VARIABLES.md)
