@@ -51,42 +51,100 @@ function wantsHtml(req) {
 }
 
 const sharedCss = `
-  :root { color-scheme: dark; }
+  :root {
+    color-scheme: dark;
+    --ink: #f2efe8;
+    --muted: #8b867c;
+    --line: rgba(242, 239, 232, 0.12);
+    --fill: rgba(242, 239, 232, 0.06);
+    --accent: #f2efe8;
+    --danger: #e8a0a0;
+  }
   * { box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
-    margin: 0; min-height: 100vh; display: grid; place-items: center;
-    font-family: "Segoe UI", system-ui, sans-serif;
-    background: #0f1115; color: #e8eaed;
+    margin: 0;
+    display: grid;
+    place-items: center;
+    font-family: "Instrument Sans", "Segoe UI", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(900px 500px at 50% -10%, rgba(242, 239, 232, 0.07), transparent 55%),
+      #0c0d10;
   }
-  .card {
-    width: min(400px, 92vw); padding: 1.75rem;
-    border: 1px solid #2a2f3a; border-radius: 12px; background: #161a22;
+  .wrap {
+    width: min(320px, 88vw);
+    text-align: center;
   }
-  h1 { margin: 0 0 0.35rem; font-size: 1.25rem; font-weight: 600; }
-  p.sub { margin: 0 0 1.25rem; color: #9aa3b2; font-size: 0.9rem; line-height: 1.45; }
-  label { display: block; font-size: 0.8rem; color: #9aa3b2; margin-bottom: 0.4rem; }
+  .brand {
+    margin: 0 0 1.75rem;
+    font-size: 1.35rem;
+    font-weight: 560;
+    letter-spacing: -0.03em;
+  }
+  form { text-align: left; }
   input[type=password] {
-    width: 100%; padding: 0.7rem 0.8rem; border-radius: 8px;
-    border: 1px solid #3a4150; background: #0f1115; color: inherit; font-size: 1rem;
+    width: 100%;
+    padding: 0.85rem 0;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 1rem;
+    letter-spacing: 0.08em;
   }
-  input[type=password]:focus { outline: 2px solid #5b8def; border-color: transparent; }
-  button, .btn {
-    margin-top: 1rem; width: 100%; padding: 0.75rem;
-    border: 0; border-radius: 8px; background: #e8eaed; color: #0f1115;
-    font-weight: 600; cursor: pointer; font-size: 0.95rem; text-align: center;
-    text-decoration: none; display: inline-block;
+  input[type=password]::placeholder { color: var(--muted); letter-spacing: 0; }
+  input[type=password]:focus {
+    outline: none;
+    border-bottom-color: rgba(242, 239, 232, 0.45);
   }
-  button:hover, .btn:hover { filter: brightness(0.95); }
-  .err { color: #ff8e8e; font-size: 0.85rem; margin: 0 0 0.75rem; }
-  .status { color: #9aa3b2; font-size: 0.85rem; margin: 0; }
+  button {
+    margin-top: 1.5rem;
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #0c0d10;
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.92rem;
+    cursor: pointer;
+  }
+  button:hover { filter: brightness(0.96); }
+  .err {
+    margin: 0 0 0.9rem;
+    color: var(--danger);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .loading {
+    display: grid;
+    justify-items: center;
+    gap: 1.25rem;
+  }
   .spinner {
-    width: 1.1rem; height: 1.1rem; border-radius: 50%;
-    border: 2px solid #3a4150; border-top-color: #e8eaed;
-    animation: spin 0.8s linear infinite; display: inline-block;
-    vertical-align: -0.2rem; margin-right: 0.5rem;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--line);
+    border-top-color: var(--ink);
+    animation: spin 0.9s linear infinite;
+  }
+  .hint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.88rem;
+    letter-spacing: 0.01em;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 `;
+
+const fontLink =
+  '<link rel="preconnect" href="https://fonts.googleapis.com" />' +
+  '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />' +
+  '<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />';
 
 function loginPage(error = "") {
   const err = error ? `<p class="err">${error}</p>` : "";
@@ -96,17 +154,18 @@ function loginPage(error = "") {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OpenSEO</title>
+  ${fontLink}
   <style>${sharedCss}</style>
 </head>
 <body>
-  <form class="card" method="post" action="/__gate/login">
-    <h1>OpenSEO</h1>
-    <p class="sub">Enter the site password to continue.</p>
+  <div class="wrap">
+    <p class="brand">OpenSEO</p>
     ${err}
-    <label for="password">Password</label>
-    <input id="password" name="password" type="password" autocomplete="current-password" autofocus required />
-    <button type="submit">Unlock</button>
-  </form>
+    <form method="post" action="/__gate/login">
+      <input id="password" name="password" type="password" placeholder="Password" autocomplete="current-password" autofocus required />
+      <button type="submit">Continue</button>
+    </form>
+  </div>
 </body>
 </html>`;
 }
@@ -118,37 +177,28 @@ function startingPage(nextPath = "/") {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OpenSEO starting</title>
+  <title>OpenSEO</title>
+  ${fontLink}
   <style>${sharedCss}</style>
 </head>
 <body>
-  <div class="card">
-    <h1>OpenSEO is starting</h1>
-    <p class="sub">
-      The app image is still booting (migrate + build). That can take a few minutes on a cold start.
-      This page checks every few seconds and continues automatically.
-    </p>
-    <p class="status"><span class="spinner"></span><span id="msg">Waiting for OpenSEO…</span></p>
+  <div class="wrap loading">
+    <p class="brand">OpenSEO</p>
+    <div class="spinner" aria-hidden="true"></div>
+    <p class="hint">Starting…</p>
   </div>
   <script>
     const next = decodeURIComponent(${JSON.stringify(safeNext)});
-    const msg = document.getElementById("msg");
-    let tries = 0;
     async function tick() {
-      tries += 1;
       try {
         const res = await fetch("/__gate/upstream", { cache: "no-store" });
         const data = await res.json();
         if (data && data.ok) {
-          msg.textContent = "OpenSEO is ready — continuing…";
           location.replace(next || "/");
           return;
         }
-        msg.textContent = "Still starting… check #" + tries;
-      } catch (e) {
-        msg.textContent = "Still starting… check #" + tries;
-      }
-      setTimeout(tick, 3000);
+      } catch (e) {}
+      setTimeout(tick, 4000);
     }
     tick();
   </script>
