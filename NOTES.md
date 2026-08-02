@@ -28,6 +28,8 @@
 Logout: `/__gate/logout`  
 Starting page while app boots: automatic on Gate
 
+MCP connectors use `https://<Gate>/mcp`. The gate bypasses password auth for `/mcp`, `/.well-known/*`, `/api/auth/oauth2/*`, and `/api/oauth/consent` so Cursor/Claude can finish OAuth; the UI stays password-gated. Redeploy **Gate** after pulling that change.
+
 ## Verified
 
 - Volume + D1 survive redeploy

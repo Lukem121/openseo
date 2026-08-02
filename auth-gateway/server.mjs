@@ -50,6 +50,35 @@ function wantsHtml(req) {
   return accept.includes("text/html") || accept === "" || accept === "*/*";
 }
 
+/**
+ * MCP clients (Cursor, Claude, Codex) cannot present the gate cookie.
+ * Proxy these paths straight to OpenSEO so OAuth discovery, DCR, token
+ * exchange, and streamable HTTP can complete. Browser UI stays gated.
+ *
+ * Paths match OpenSEO's MCP OAuth surface (see app.openseo.so metadata):
+ *   /.well-known/oauth-protected-resource
+ *   /.well-known/oauth-authorization-server
+ *   /api/auth/oauth2/{authorize,token,register}
+ *   /api/oauth/consent
+ *   /mcp
+ */
+function isMcpBypassPath(pathname) {
+  if (pathname === "/mcp" || pathname.startsWith("/mcp/")) return true;
+  if (pathname.startsWith("/.well-known/")) return true;
+  if (pathname.startsWith("/api/auth/oauth2/")) return true;
+  if (pathname === "/api/oauth/consent" || pathname.startsWith("/api/oauth/consent/")) {
+    return true;
+  }
+  return false;
+}
+
+/** Only allow same-origin relative redirect targets after gate login. */
+function safeNextPath(raw, fallback = "/") {
+  const value = String(raw || "").trim() || fallback;
+  if (!value.startsWith("/") || value.startsWith("//")) return fallback;
+  return value;
+}
+
 const sharedCss = `
   :root {
     color-scheme: dark;
@@ -146,8 +175,13 @@ const fontLink =
   '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />' +
   '<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />';
 
-function loginPage(error = "") {
+function loginPage(error = "", nextPath = "/") {
   const err = error ? `<p class="err">${error}</p>` : "";
+  const next = safeNextPath(nextPath);
+  const nextField =
+    next === "/"
+      ? ""
+      : `<input type="hidden" name="next" value="${next.replace(/"/g, "&quot;")}" />`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -162,6 +196,7 @@ function loginPage(error = "") {
     <p class="brand">OpenSEO</p>
     ${err}
     <form method="post" action="/__gate/login">
+      ${nextField}
       <input id="password" name="password" type="password" placeholder="Password" autocomplete="current-password" autofocus required />
       <button type="submit">Continue</button>
     </form>
@@ -341,20 +376,23 @@ const server = http.createServer(async (req, res) => {
     const body = await readBody(req);
     const params = new URLSearchParams(body.toString("utf8"));
     const password = params.get("password") || "";
+    const next = safeNextPath(params.get("next"));
     if (safeEqual(password, SITE_PASSWORD)) {
       setAuthCookie(res);
       const upstream = await probeUpstream();
       if (!upstream.ok) {
-        res.writeHead(303, { Location: "/__gate/starting" });
+        res.writeHead(303, {
+          Location: `/__gate/starting?next=${encodeURIComponent(next)}`,
+        });
         res.end();
         return;
       }
-      res.writeHead(302, { Location: "/" });
+      res.writeHead(302, { Location: next });
       res.end();
       return;
     }
     res.writeHead(401, { "content-type": "text/html; charset=utf-8" });
-    res.end(loginPage("Wrong password."));
+    res.end(loginPage("Wrong password.", next));
     return;
   }
 
@@ -364,15 +402,21 @@ const server = http.createServer(async (req, res) => {
       res.end();
       return;
     }
-    const next = url.searchParams.get("next") || "/";
+    const next = safeNextPath(url.searchParams.get("next"));
     sendStarting(req, res, next);
+    return;
+  }
+
+  // MCP / OAuth: no gate cookie. Clients discover and authorize against OpenSEO.
+  if (isMcpBypassPath(url.pathname)) {
+    proxy(req, res);
     return;
   }
 
   if (!isAuthed(req)) {
     if (wantsHtml(req) && req.method === "GET") {
       res.writeHead(401, { "content-type": "text/html; charset=utf-8" });
-      res.end(loginPage());
+      res.end(loginPage("", `${url.pathname}${url.search}`));
       return;
     }
     res.writeHead(401, { "content-type": "application/json; charset=utf-8" });
